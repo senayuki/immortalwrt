@@ -2,6 +2,8 @@
 #
 # Copyright 2018-2020 NXP
 
+include ./efi.mk
+
 define Device/Default
   PROFILES := Default
   IMAGES := firmware.bin sysupgrade.bin
@@ -23,6 +25,24 @@ define Device/fsl-sdboot
   KERNEL = kernel-bin | gzip | fit gzip $$(DEVICE_DTS_DIR)/$$(DEVICE_DTS).dtb
   IMAGES := sdcard.img.gz sysupgrade.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+
+define Device/fsl-efi
+  GRUB_CONSOLE_CMDLINE := $(GRUB_CONSOLE_CMDLINE_DEFAULT)
+  DEVICE_PACKAGES += grub2-efi-arm kmod-fs-vfat
+  FILESYSTEMS := ext4 squashfs
+  KERNEL_NAME := Image
+  KERNEL := kernel-bin
+  KERNEL_INITRAMFS := kernel-bin
+  KERNEL_INSTALL := 1
+  IMAGE_SIZE :=
+  IMAGE/combined-efi.img := ls-grub-config | ls-combined-efi | append-metadata
+  IMAGE/combined-efi.img.gz := ls-grub-config | ls-combined-efi | gzip | append-metadata
+  ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
+    IMAGES := combined-efi.img.gz
+  else
+    IMAGES := combined-efi.img
+  endif
 endef
 
 define Device/fsl_ls1012a-frdm
@@ -374,6 +394,18 @@ define Device/fsl_lx2160a-rdb-sdboot
     append-rootfs | pad-to $(LS_SD_IMAGE_SIZE)M | gzip
 endef
 TARGET_DEVICES += fsl_lx2160a-rdb-sdboot
+
+# TODO: Add U-Boot boot.scr support alongside GRUB EFI.
+define Device/fsl_lx2160a-rdb-xc310
+  $(Device/fsl-efi)
+  DEVICE_VENDOR := NXP
+  DEVICE_MODEL := LX2160A-RDB
+  DEVICE_VARIANT := XC310
+  DEVICE_PACKAGES += restool
+  DEVICE_DTS := fsl-lx2160a-rdb
+  GRUB_CONSOLE_CMDLINE := earlycon console=ttyAMA0,$(CONFIG_GRUB_BAUDRATE)n8$(if $(CONFIG_GRUB_FLOWCONTROL),r,)
+endef
+TARGET_DEVICES += fsl_lx2160a-rdb-xc310
 
 define Device/traverse_ten64_mtd
   DEVICE_VENDOR := Traverse
