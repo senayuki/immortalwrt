@@ -8,7 +8,10 @@ if sf probe 0:0; then
     if sf read @DPL_ADDR@ 0xd00000 0x100000; then
         fsl_mc apply dpl @DPL_ADDR@
         if sf read @FDT_ADDR@ 0xf00000 0x100000; then
-            if scsi reset; then
+            # Set the OpenWrt board identity in RAM; keep the SPI hardware DT.
+            if fdt addr @FDT_ADDR@ && fdt resize 0x1000 &&
+               fdt set / compatible "fsl,lx2160a-rdb-xc310" "fsl,lx2160a-rdb" "fsl,lx2160a" &&
+               fdt set / model "NXP Layerscape LX2160A-RDB XC310" && scsi reset; then
                 if fatload scsi 0:1 @KERNEL_ADDR@ /efi/openwrt/Image; then
                     setenv bootargs 'root=@ROOTPART@ rootwait @BOOTARGS@'
                     booti @KERNEL_ADDR@ - @FDT_ADDR@

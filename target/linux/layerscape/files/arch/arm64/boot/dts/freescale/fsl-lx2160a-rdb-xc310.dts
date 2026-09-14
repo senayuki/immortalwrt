@@ -4,11 +4,11 @@
 /memreserve/	0x000000009fff7000 0x0000000000006000;
 /memreserve/	0x00000000926feead 0x0000000001682809;
 / {
-	compatible = "fsl,lx2160a-rdb", "fsl,lx2160a";
+	compatible = "fsl,lx2160a-rdb-xc310", "fsl,lx2160a-rdb", "fsl,lx2160a";
 	interrupt-parent = <0x01>;
 	#address-cells = <0x02>;
 	#size-cells = <0x02>;
-	model = "NXP Layerscape LX2160ARDB";
+	model = "NXP Layerscape LX2160A-RDB XC310";
 
 	chosen {
 		linux,initrd-end = <0x00 0x93d816b6>;
