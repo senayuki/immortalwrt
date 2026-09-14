@@ -17,11 +17,22 @@ endif
 # The limitation of flash sysupgrade.bin is 1MB dtb + 16MB kernel + 32MB rootfs
 LS_SYSUPGRADE_IMAGE_SIZE = 49m
 
+GPT_ROOTPART := $(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+GPT_ROOTPART := $(if $(GPT_ROOTPART),$(GPT_ROOTPART),PARTUUID=$(shell echo $(IMG_PART_DISKGUID) | sed 's/00$$/02/'))
+BOOTOPTS := $(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
+
+DEVICE_VARS += BOOTOPTS
+
 define Image/Prepare
 	# Build .dtb for all boards we may run on
 	$(foreach dts,$(DEVICE_DTS_LIST),
 		$(call Image/BuildDTB,$(DTS_DIR)/$(dts).dts,$(DTS_DIR)/$(dts).dtb)
 	)
+endef
+
+define Build/ls-boot-prepare
+	rm -fR $@.boot
+	$(INSTALL_DIR) $@.boot
 endef
 
 define Build/ls-clean

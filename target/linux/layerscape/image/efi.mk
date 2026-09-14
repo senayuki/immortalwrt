@@ -17,16 +17,12 @@ ifneq ($(GRUB_SERIAL),)
 endif
 
 GRUB_TERMINAL_CONFIG := terminal_input $(GRUB_TERMINALS); terminal_output $(GRUB_TERMINALS)
-GPT_ROOTPART := $(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
-GPT_ROOTPART := $(if $(GPT_ROOTPART),$(GPT_ROOTPART),PARTUUID=$(shell echo $(IMG_PART_DISKGUID) | sed 's/00$$/02/'))
 GRUB_TIMEOUT := $(call qstrip,$(CONFIG_GRUB_TIMEOUT))
 GRUB_TITLE := $(call qstrip,$(CONFIG_GRUB_TITLE))
-BOOTOPTS := $(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
 
-DEVICE_VARS += GRUB_CONSOLE_CMDLINE BOOTOPTS
+DEVICE_VARS += GRUB_CONSOLE_CMDLINE
 
 define Build/ls-grub-config
-	rm -fR $@.boot
 	$(INSTALL_DIR) $@.boot/efi/openwrt
 	sed \
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
