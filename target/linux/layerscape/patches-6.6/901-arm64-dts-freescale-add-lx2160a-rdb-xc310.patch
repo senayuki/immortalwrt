@@ -1,0 +1,15 @@
+Subject: [PATCH] arm64: dts: freescale: build the LX2160A-RDB XC310 DTB
+
+Register the XC310 device tree supplied by the Layerscape files overlay.
+
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -33,6 +33,8 @@
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2160a-honeycomb.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2160a-qds.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2160a-rdb.dtb
++DTC_FLAGS_fsl-lx2160a-rdb-xc310 := -Wno-interrupt_map
++dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2160a-rdb-xc310.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2162a-qds.dtb
+ 
+ fsl-ls1028a-qds-13bb-dtbs := fsl-ls1028a-qds.dtb fsl-ls1028a-qds-13bb.dtbo
