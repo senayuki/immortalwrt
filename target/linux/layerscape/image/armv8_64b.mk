@@ -411,7 +411,7 @@ define Device/fsl_lx2160a-rdb-xc310
   DEVICE_VENDOR := NXP
   DEVICE_MODEL := LX2160A-RDB
   DEVICE_VARIANT := XC310
-  DEVICE_PACKAGES += restool kmod-mdio-proxy
+  DEVICE_PACKAGES += restool kmod-ahci-qoriq kmod-mdio-proxy
   DEVICE_DTS := fsl-lx2160a-rdb-xc310
   GRUB_CONSOLE_CMDLINE := earlycon console=ttyAMA0,$(CONFIG_GRUB_BAUDRATE)n8$(if $(CONFIG_GRUB_FLOWCONTROL),r,)
   # Leave BOOT_SCRIPT empty for an EFI-only ESP.
