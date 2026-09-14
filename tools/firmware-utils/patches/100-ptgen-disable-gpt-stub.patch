@@ -1,0 +1,53 @@
+Subject: [PATCH] ptgen: support disabling the GPT BIOS boot stub
+
+Backport the -D option used by newer firmware-utils. Pure EFI images need
+only the ESP and rootfs, without a BIOS boot partition in the alignment gap.
+The default partition layout is unchanged.
+
+--- a/src/ptgen.c
++++ b/src/ptgen.c
+@@ -169,6 +169,7 @@
+ int kb_align = 0;
+ bool ignore_null_sized_partition = false;
+ bool use_guid_partition_table = false;
++bool allow_stub_partition = true;
+ struct partinfo parts[GPT_ENTRY_MAX];
+ char *filename = NULL;
+ 
+@@ -480,7 +481,7 @@
+ 		printf("%" PRIu64 "\n", (sect - start) * DISK_SECTOR_SIZE);
+ 	}
+ 
+-	if (parts[0].actual_start > GPT_FIRST_ENTRY_SECTOR + GPT_SIZE) {
++	if (allow_stub_partition && parts[0].actual_start > GPT_FIRST_ENTRY_SECTOR + GPT_SIZE) {
+ 		gpte[GPT_ENTRY_MAX - 1].start = cpu_to_le64(GPT_FIRST_ENTRY_SECTOR + GPT_SIZE);
+ 		gpte[GPT_ENTRY_MAX - 1].end = cpu_to_le64(parts[0].actual_start - 1);
+ 		gpte[GPT_ENTRY_MAX - 1].type = GUID_PARTITION_BIOS_BOOT;
+@@ -568,7 +569,7 @@
+ 
+ static void usage(char *prog)
+ {
+-	fprintf(stderr, "Usage: %s [-v] [-n] [-g] -h <heads> -s <sectors> -o <outputfile>\n"
++	fprintf(stderr, "Usage: %s [-v] [-n] [-g] [-D] -h <heads> -s <sectors> -o <outputfile>\n"
+ 			"          [-a <part number>] [-l <align kB>] [-G <guid>]\n"
+ 			"          [[-t <type> | -T <GPT part type>] [-r] [-N <name>] -p <size>[@<start>]...] \n", prog);
+ 	exit(EXIT_FAILURE);
+@@ -607,7 +608,7 @@
+ 	guid_t guid = GUID_INIT( signature, 0x2211, 0x4433, \
+ 			0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0x00);
+ 
+-	while ((ch = getopt(argc, argv, "h:s:p:a:t:T:o:vnHN:gl:rS:G:")) != -1) {
++	while ((ch = getopt(argc, argv, "h:s:p:a:t:T:o:DvnHN:gl:rS:G:")) != -1) {
+ 		switch (ch) {
+ 		case 'o':
+ 			filename = optarg;
+@@ -618,6 +619,9 @@
+ 		case 'n':
+ 			ignore_null_sized_partition = true;
+ 			break;
++		case 'D':
++			allow_stub_partition = false;
++			break;
+ 		case 'g':
+ 			use_guid_partition_table = 1;
+ 			break;
