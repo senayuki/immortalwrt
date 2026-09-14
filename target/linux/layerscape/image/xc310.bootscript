@@ -1,0 +1,22 @@
+# XC310 SPI layout; use the firmware DTB, not the ESP's Linux DTB.
+echo XC310: starting Linux with MC/DPL and the DTB from SPI
+
+# Keep MC/DPL errors visible but continue, as in the tested manual boot.
+run x200_mc_boot
+
+if sf probe 0:0; then
+    if sf read @DPL_ADDR@ 0xd00000 0x100000; then
+        fsl_mc apply dpl @DPL_ADDR@
+        if sf read @FDT_ADDR@ 0xf00000 0x100000; then
+            if scsi reset; then
+                if fatload scsi 0:1 @KERNEL_ADDR@ /efi/openwrt/Image; then
+                    setenv bootargs 'root=@ROOTPART@ rootwait @BOOTARGS@'
+                    booti @KERNEL_ADDR@ - @FDT_ADDR@
+                fi
+            fi
+        fi
+    fi
+fi
+
+echo XC310: Linux boot failed - returning to U-Boot shell
+false

@@ -3,9 +3,15 @@
 # Copyright 2018-2020 NXP
 
 include ./efi.mk
+include ./uboot.mk
 
 define Device/Default
   PROFILES := Default
+  BOOT_SCRIPT :=
+  UBOOT_BOOTARGS :=
+  UBOOT_KERNEL_ADDR :=
+  UBOOT_FDT_ADDR :=
+  UBOOT_DPL_ADDR :=
   IMAGES := firmware.bin sysupgrade.bin
   DEVICE_DTS_DIR := $(DTS_DIR)/freescale
   DEVICE_DTS = $(subst _,-,$(1))
@@ -29,6 +35,7 @@ endef
 
 define Device/fsl-efi
   GRUB_CONSOLE_CMDLINE := $(GRUB_CONSOLE_CMDLINE_DEFAULT)
+  UBOOT_BOOTARGS = $$(BOOTOPTS) $$(GRUB_CONSOLE_CMDLINE)
   DEVICE_PACKAGES += grub2-efi-arm kmod-fs-vfat
   FILESYSTEMS := ext4 squashfs
   KERNEL_NAME := Image
@@ -36,8 +43,12 @@ define Device/fsl-efi
   KERNEL_INITRAMFS := kernel-bin
   KERNEL_INSTALL := 1
   IMAGE_SIZE :=
-  IMAGE/combined-efi.img := ls-grub-config | ls-combined-efi | append-metadata
-  IMAGE/combined-efi.img.gz := ls-grub-config | ls-combined-efi | gzip | append-metadata
+  IMAGE/combined-efi.img := \
+    ls-boot-prepare | ls-grub-config | ls-boot-script | \
+    ls-combined-efi | append-metadata
+  IMAGE/combined-efi.img.gz := \
+    ls-boot-prepare | ls-grub-config | ls-boot-script | \
+    ls-combined-efi | gzip | append-metadata
   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
     IMAGES := combined-efi.img.gz
   else
@@ -395,7 +406,6 @@ define Device/fsl_lx2160a-rdb-sdboot
 endef
 TARGET_DEVICES += fsl_lx2160a-rdb-sdboot
 
-# TODO: Add U-Boot boot.scr support alongside GRUB EFI.
 define Device/fsl_lx2160a-rdb-xc310
   $(Device/fsl-efi)
   DEVICE_VENDOR := NXP
@@ -404,6 +414,11 @@ define Device/fsl_lx2160a-rdb-xc310
   DEVICE_PACKAGES += restool
   DEVICE_DTS := fsl-lx2160a-rdb-xc310
   GRUB_CONSOLE_CMDLINE := earlycon console=ttyAMA0,$(CONFIG_GRUB_BAUDRATE)n8$(if $(CONFIG_GRUB_FLOWCONTROL),r,)
+  # Leave BOOT_SCRIPT empty for an EFI-only ESP.
+  BOOT_SCRIPT := xc310
+  UBOOT_KERNEL_ADDR := 0xa0000000
+  UBOOT_FDT_ADDR := 0x90000000
+  UBOOT_DPL_ADDR := 0x80d00000
 endef
 TARGET_DEVICES += fsl_lx2160a-rdb-xc310
 
