@@ -1,0 +1,44 @@
+From ba2ab1f729241a0fc51568aa21836fb79a0d3759 Mon Sep 17 00:00:00 2001
+From: Ioana Ciornei <ioana.ciornei@nxp.com>
+Date: Wed, 5 Apr 2023 15:41:48 +0300
+Subject: [PATCH] net: pcs: lynx: extend support to also handle
+ PHY_INTERFACE_MODE_25GBASER
+
+Extend the Lynx PCS driver in order to be able to handle the
+PHY_INTERFACE_MODE_25GBASER interface type.
+
+On Linux 6.12, also advertise the same in-band capabilities as 10GBASE-R
+through the newly added pcs_inband_caps callback.
+
+Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
+
+diff --git a/drivers/net/pcs/pcs-lynx.c b/drivers/net/pcs/pcs-lynx.c
+index dc3962b2aa6b..7e1e8f61f043 100644
+--- a/drivers/net/pcs/pcs-lynx.c
++++ b/drivers/net/pcs/pcs-lynx.c
+@@ -45,6 +45,7 @@ static unsigned int lynx_pcs_inband_caps(struct phylink_pcs *pcs,
+ 		return LINK_INBAND_DISABLE | LINK_INBAND_ENABLE;
+ 
+ 	case PHY_INTERFACE_MODE_10GBASER:
++	case PHY_INTERFACE_MODE_25GBASER:
+ 	case PHY_INTERFACE_MODE_2500BASEX:
+ 		return LINK_INBAND_DISABLE;
+ 
+@@ -118,6 +119,7 @@ static void lynx_pcs_get_state(struct phylink_pcs *pcs,
+ 		lynx_pcs_get_state_usxgmii(lynx->mdio, state);
+ 		break;
+ 	case PHY_INTERFACE_MODE_10GBASER:
++	case PHY_INTERFACE_MODE_25GBASER:
+ 		phylink_mii_c45_pcs_get_state(lynx->mdio, state);
+ 		break;
+ 	default:
+@@ -211,7 +213,8 @@ static int lynx_pcs_config(struct phylink_pcs *pcs, unsigned int neg_mode,
+ 		return lynx_pcs_config_usxgmii(lynx->mdio, advertising,
+ 					       neg_mode);
+ 	case PHY_INTERFACE_MODE_10GBASER:
+-		/* Nothing to do here for 10GBASER */
++	case PHY_INTERFACE_MODE_25GBASER:
++		/* Nothing to do here for 10GBASER and 25GBASER */
+ 		break;
+ 	default:
+ 		return -EOPNOTSUPP;
